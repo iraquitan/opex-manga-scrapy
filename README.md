@@ -4,6 +4,8 @@
 * Scrapy
 * Splash
 * scrapy_splash
+* KindleGen
+* Kindle Comic Converter
 
 ## Quick start
 The easiest way to set up Splash is through Docker:
