@@ -76,7 +76,12 @@ ITEM_PIPELINES = {
     # 'opex_manga_scrapy.pipelines.OpexMangaScrapyPipeline': 300,
     'scrapy.pipelines.images.ImagesPipeline': 1,
     'opex_manga_scrapy.pipelines.JsonWriterPipeline': 300,
+    'opex_manga_scrapy.pipelines.MongoPipeline': 400,
 }
+# TODO - Extend ImagesPipeline to handle dynamic store path
+# @author - pma007
+# @date - 6/30/17
+# @time - 17:57
 IMAGES_STORE = '/Users/iraquitan/Developer/opex-manga-scrapy/mangas'
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -106,3 +111,10 @@ IMAGES_STORE = '/Users/iraquitan/Developer/opex-manga-scrapy/mangas'
 SPLASH_URL = 'http://localhost:8050/'
 
 DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
+
+# MongoDB Settings
+# MONGO_URI = 'mongodb://user:password@127.0.0.1:27017'
+MONGO_URI = 'mongodb://localhost:27017'
+MONGO_DATABASE = 'opex_db'
+MONGO_USER = 'mongodb_user'
+MONGO_PW = 'mongodb_pw'

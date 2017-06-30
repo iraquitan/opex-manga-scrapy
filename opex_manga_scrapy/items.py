@@ -9,9 +9,10 @@ import scrapy
 
 
 class OpexMangaScrapyItem(scrapy.Item):
-    name = scrapy.Field()
-    chapter = scrapy.Field()
     title = scrapy.Field()
+    n_pages = scrapy.Field()
+    page = scrapy.Field()
+    chapter = scrapy.Field()
     req_url = scrapy.Field()
     image_urls = scrapy.Field()
     images = scrapy.Field()

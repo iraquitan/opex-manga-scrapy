@@ -11,7 +11,7 @@ from opex_manga_scrapy.items import OpexMangaScrapyItem
 class OpexSpider(scrapy.Spider):
     name = 'opex'
 
-    def __init__(self, chapter=870, *args, **kwargs):
+    def __init__(self, chapter="870", *args, **kwargs):
         super(OpexSpider, self).__init__(*args, **kwargs)
         self.start_urls = [
             'https://one-piece-x.com.br/mangas/leitor/{}/'.format(chapter)]
@@ -22,7 +22,8 @@ class OpexSpider(scrapy.Spider):
     save_path = 'mangas'
 
     def parse(self, response):
-        for page_aid in response.xpath("//a[re:test(@id, '\d$')]"):
+        pages = response.xpath("//a[re:test(@id, '\d$')]")
+        for page_aid in pages:
             page_id = page_aid.xpath("text()").extract_first()
             req_url = self.start_urls[0] + page_aid.xpath('@href').extract()[0]
             request = scrapy_splash.SplashRequest(
@@ -30,20 +31,24 @@ class OpexSpider(scrapy.Spider):
                 args={'wait': 2},
                 slot_policy=scrapy_splash.SlotPolicy.PER_DOMAIN,
             )
-            request.meta['name'] = "page-{:02d}".format(int(page_id))
+            request.meta['page'] = int(page_id)
+            request.meta['n_pages'] = len(pages)
             yield request
 
     def parse_images(self, response):
-        name = response.meta['name']
+        page = response.meta['page']
+        n_pages = response.meta['n_pages']
         title = response.xpath(
             '//*[@id="tituloleitor"]/text()').extract_first()
         img = response.xpath('//*[@id="conteudo"]/p[2]/a/img').xpath("@src")
         imageURL = img.extract_first()
-        full_url = os.path.join(self.base_img_url, imageURL[1:])
+        if imageURL:
+            full_url = os.path.join(self.base_img_url, imageURL[1:])
+        else:
+            full_url = self.base_img_url
 
-        yield OpexMangaScrapyItem(name=name,
-            #name="Chapter {}".format(self.chapter),
-                                  chapter=self.chapter, title=title,
+        yield OpexMangaScrapyItem(page=page, chapter=self.chapter,
+                                  n_pages=n_pages, title=title,
                                   req_url=self.start_urls[0],
                                   image_urls=[full_url])
 
