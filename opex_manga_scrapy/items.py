@@ -10,5 +10,8 @@ import scrapy
 
 class OpexMangaScrapyItem(scrapy.Item):
     name = scrapy.Field()
-    file_urls = scrapy.Field()
-    files = scrapy.Field()
+    chapter = scrapy.Field()
+    title = scrapy.Field()
+    req_url = scrapy.Field()
+    image_urls = scrapy.Field()
+    images = scrapy.Field()

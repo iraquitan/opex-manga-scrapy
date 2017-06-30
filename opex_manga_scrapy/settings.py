@@ -72,9 +72,12 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'opex_manga_scrapy.pipelines.OpexMangaScrapyPipeline': 300,
-#}
+ITEM_PIPELINES = {
+    # 'opex_manga_scrapy.pipelines.OpexMangaScrapyPipeline': 300,
+    'scrapy.pipelines.images.ImagesPipeline': 1,
+    'opex_manga_scrapy.pipelines.JsonWriterPipeline': 300,
+}
+IMAGES_STORE = '/Users/iraquitan/Developer/opex-manga-scrapy/mangas'
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
