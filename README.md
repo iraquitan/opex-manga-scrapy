@@ -13,6 +13,11 @@ The easiest way to set up Splash is through Docker:
 $ docker pull scrapinghub/splash
 $ docker run -p 5023:5023 -p 8050:8050 -p 8051:8051 scrapinghub/splash
 ```
+Then setup MongoDB:
+```bash
+$ docker pull mongo
+$ docker run --name opex-mongo -p 27017:27017 -d mongo
+```
 
 To run just do:
 ```bash

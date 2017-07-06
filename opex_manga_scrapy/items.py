@@ -18,7 +18,7 @@ class OpexMangaScrapyItem(scrapy.Item):
     images = scrapy.Field()
 
 
-class MangaItem(scrapy.Item):
+class MangaPageItem(scrapy.Item):
     title = scrapy.Field()
     ch_title = scrapy.Field()
     ch_number = scrapy.Field()

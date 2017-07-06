@@ -3,7 +3,7 @@ import re
 import scrapy
 import scrapy_splash
 
-from opex_manga_scrapy.items import MangaItem
+from opex_manga_scrapy.items import MangaPageItem
 
 
 class BokunoheroSpider(scrapy.Spider):
@@ -28,17 +28,17 @@ class BokunoheroSpider(scrapy.Spider):
 
     def parse_chapter(self, response):
         pages = response.xpath("//img[re:test(@class, 'pages__img')]")
-        image_urls = []
+        # image_urls = []
         for i, page in enumerate(pages):
             img_alt = "Page {}".format(i+1)
             img_src = page.xpath("@src | @lazysrc").extract_first()
             print("alt = {}".format(img_alt))
             print("src = {}".format(img_src))
             page_num = i + 1
-            image_urls.append(img_src)
-        chapter = MangaItem(title=self.title,
-                            ch_title="Chapter {}".format(self.chapter),
-                            ch_number=self.chapter, n_pages=len(pages),
-                            page=page_num, req_url=self.start_urls[0],
-                            image_urls=image_urls)
-        yield chapter
+            # image_urls.append(img_src)
+            chapter = MangaPageItem(title=self.title,
+                                    ch_title="Chapter {}".format(self.chapter),
+                                    ch_number=self.chapter, n_pages=len(pages),
+                                    page=page_num, req_url=self.start_urls[0],
+                                    image_urls=[img_src])
+            yield chapter

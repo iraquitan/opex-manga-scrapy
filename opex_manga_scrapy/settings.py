@@ -77,11 +77,11 @@ ITEM_PIPELINES = {
     # 'opex_manga_scrapy.pipelines.OpexMangaScrapyPipeline': 300,
     'scrapy.pipelines.images.ImagesPipeline': 1,
     'opex_manga_scrapy.pipelines.JsonWriterPipeline': 300,
-    # 'opex_manga_scrapy.pipelines.MongoPipeline': 400,
+    'opex_manga_scrapy.pipelines.MongoPipeline': 400,
 }
-IMAGES_STORE = '~/scrapy-mangas/'
-if not os.path.exists(os.path.expanduser(IMAGES_STORE)):
-    os.makedirs(os.path.expanduser(IMAGES_STORE))
+IMAGES_STORE = os.path.expanduser('~/scrapy-mangas/')
+if not os.path.exists(IMAGES_STORE):
+    os.makedirs(IMAGES_STORE)
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -114,6 +114,6 @@ DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
 # MongoDB Settings
 # MONGO_URI = 'mongodb://user:password@127.0.0.1:27017'
 MONGO_URI = 'mongodb://localhost:27017'
-MONGO_DATABASE = 'opex_db'
+MONGO_DATABASE = 'mangas_db'
 MONGO_USER = 'mongodb_user'
 MONGO_PW = 'mongodb_pw'
