@@ -72,6 +72,10 @@ class MongoPipeline(object):
         if d_item['images'] is None:
             raise DropItem("Page image not loaded.")
 
+        chapter = {
+
+        }
+
         chapter_page = {
             'number': page,
             'image_url': d_item['image_urls'][0],
@@ -94,6 +98,21 @@ class MongoPipeline(object):
                 }
             )
         else:  # Insert
+            title = self.title,
+            ch_title = "Chapter {}".format(self.chapter),
+            ch_number = self.chapter, n_pages = len(pages),
+            page = page_num, req_url = self.start_urls[0],
+            image_urls = image_urls
+            chapter_item = {
+                'title': d_item['title'],
+                'chapters': [chapter],
+                'req_url': d_item['req_url'],
+                'n_pages': n_pages,
+                'pages': [chapter_page],
+                'date_added': datetime.datetime.utcnow(),
+                'last_modified': datetime.datetime.utcnow(),
+
+            }
             chapter_item = {
                 'title': d_item['title'],
                 'chapter': chapter,

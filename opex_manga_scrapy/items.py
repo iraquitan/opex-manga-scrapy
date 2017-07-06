@@ -16,3 +16,14 @@ class OpexMangaScrapyItem(scrapy.Item):
     req_url = scrapy.Field()
     image_urls = scrapy.Field()
     images = scrapy.Field()
+
+
+class MangaItem(scrapy.Item):
+    title = scrapy.Field()
+    ch_title = scrapy.Field()
+    ch_number = scrapy.Field()
+    n_pages = scrapy.Field()
+    page = scrapy.Field()
+    req_url = scrapy.Field()
+    image_urls = scrapy.Field()
+    images = scrapy.Field()

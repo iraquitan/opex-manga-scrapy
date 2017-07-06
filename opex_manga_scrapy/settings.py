@@ -8,6 +8,7 @@
 #     http://doc.scrapy.org/en/latest/topics/settings.html
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
+import os
 
 BOT_NAME = 'opex_manga_scrapy'
 
@@ -76,13 +77,11 @@ ITEM_PIPELINES = {
     # 'opex_manga_scrapy.pipelines.OpexMangaScrapyPipeline': 300,
     'scrapy.pipelines.images.ImagesPipeline': 1,
     'opex_manga_scrapy.pipelines.JsonWriterPipeline': 300,
-    'opex_manga_scrapy.pipelines.MongoPipeline': 400,
+    # 'opex_manga_scrapy.pipelines.MongoPipeline': 400,
 }
-# TODO - Extend ImagesPipeline to handle dynamic store path
-# @author - pma007
-# @date - 6/30/17
-# @time - 17:57
-IMAGES_STORE = '/Users/iraquitan/Developer/opex-manga-scrapy/mangas'
+IMAGES_STORE = '~/scrapy-mangas/'
+if not os.path.exists(os.path.expanduser(IMAGES_STORE)):
+    os.makedirs(os.path.expanduser(IMAGES_STORE))
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
