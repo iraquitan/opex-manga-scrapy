@@ -211,33 +211,35 @@ class MongoPipelineNew(object):
 
     def query_manga(self, title):
         coll = self.db[self.collection_mangas]
-        cur = coll.find_one({'title': title})
-        return cur
+        manga = None
+        res = coll.find_one({'title': title})
+        if res is not None:
+            manga = res
+        return manga
 
     def query_manga_chapter(self, title, chapter):
-        manga = self.query_manga(title)
-        coll_mangas = self.db[self.collection_mangas]
-        cur = coll_mangas.find({'title': title, 'chapters.num': chapter})
-        coll = self.db[self.collection_chapters]
+        coll_mg = self.db[self.collection_mangas]
+        coll_ch = self.db[self.collection_mangas]
+        manga = coll_mg.find_one({"title": title,
+                                   "chapters": {"num": chapter}})
+        chapter = None
+        if manga is not None:
+            chapter_id = [c.id for c in manga.chapters if c.num == chapter]
+            chapter = coll_ch.find({'_id': chapter_id[0]})
 
-        cur = coll.find_one({'title': title,
-                             'chapters': {'$elemMatch': {'num': chapter}}})
-        return cur
+        return chapter
 
     def query_manga_chapter_page(self, title, chapter, page):
-        manga = self.query_manga(title)
-        coll = self.db[self.collection_chapters]
-        # Create an array of ObjectID()s containing *just* the chapter numbers
-        # chapter_ids = manga.chapters.map( function(doc) { return doc.id } );
-        chapter_ids = [c.id for c in manga.chapters]
-        # Fetch all the Chapters that are linked to this Manga
-        # product_parts = db.parts.find({_id: { $in : part_ids } } ).toArray() ;
-        manga_chapters = coll.find({'_id': {'$in': chapter_ids}})
+        coll_ch = self.db[self.collection_chapters]
+        chapter = self.query_manga_chapter(title, chapter)
 
-        cur = coll.find_one({'title': title,
-                             'chapters': {"$elemMatch": {'num': chapter}},
-                             'chapters.pages': {'$elemMatch': {'num': page}}})
-        return cur
+        chapter_page = None
+        if chapter is not None:
+            chapter_page = coll_ch.find_one({'_id': chapter['_id'],
+                                             'pages': {
+                                                 '$elemMatch': {'num': page}
+                                             }})
+        return chapter_page
 
     def add_manga(self, title, domain):
         coll = self.db[self.collection_mangas]
@@ -252,47 +254,52 @@ class MongoPipelineNew(object):
                           req_url):
         coll_ch = self.db[self.collection_chapters]
         coll_mangas = self.db[self.collection_mangas]
+
         chapter_dict = {
             'name': chapter_name,
             'num': chapter_num,
             'n_pages': n_pages,
             'pages': [],
-            'req_url': req_url
+            'req_url': req_url,
+            'date_added': datetime.datetime.utcnow(),
+            'last_modified': datetime.datetime.utcnow()
         }
-        cur = self.query_manga_chapter(title, chapter_num)
-        res = None
-        if not cur:
-            res = coll.find_one_and_update(
+
+        # Transaction
+        res = False
+
+        res_ch = coll_ch.insert_one(chapter_dict)
+        if res_ch.inserted_id:
+            res_mg = coll_mangas.find_one_and_update(
                 {'title': title},
                 {
-                    "$push": {"chapters": chapter_dict},
+                    "$push": {"chapters": {"id": res_ch.inserted_id,
+                                           "num": chapter_num}},
                     "$set": {"last_modified": datetime.datetime.utcnow()}
                 })
-            print(res)
+            if res_mg is None:  # Remove previously added chapter
+                coll_ch.find_one_and_delete({"_id": res_ch.inserted_id})
+            else:
+                res = True
         return res
 
     def add_chapter_page(self, title, chapter_num, page, page_url, images):
-        coll = self.db[self.collection_name]
+        coll_ch = self.db[self.collection_chapters]
         page_dict = {
             'num': page,
             'image_urls': page_url,
             'images': images
         }
-        cur = self.query_manga_chapter_page(title, chapter_num, page)
+        chapter_page = self.query_manga_chapter_page(title, chapter_num, page)
         res = None
-        if not cur:
-            res = coll.find_one_and_update(
-                {'title': title,
-                 'chapters': {'$elemMatch': {'num': chapter_num}}},
-                {
-                    "$push": {"chapters.$.pages": page_dict},
-                    "$set": {"last_modified": datetime.datetime.utcnow()}
-                })
-            print(res)
+        if chapter_page is not None:
+            res = coll_ch.find_one_and_update(
+                {'_id': chapter_page['_id']},
+                {"$push": {"pages": page_dict},
+                 "$set": {"last_modified": datetime.datetime.utcnow()}})
         return res
 
     def process_item(self, item, spider):
-        coll = self.db[self.collection_name]
         d_item = dict(item)
         title = d_item['title']
         ch_title = d_item['ch_title']
@@ -312,7 +319,7 @@ class MongoPipelineNew(object):
             raise DropItem("Page image not loaded.")
 
         manga_cur = self.query_manga(title)
-        if not manga_cur:
+        if manga_cur is None:
             parsed_uri = parse.urlparse(req_url)
             domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
             self.add_manga(title=title, domain=domain)
@@ -325,7 +332,7 @@ class MongoPipelineNew(object):
         else:
             chapter_cur = self.query_manga_chapter(title=title,
                                                    chapter=ch_number)
-            if not chapter_cur:
+            if chapter_cur is None:
                 self.add_manga_chapter(title=title, chapter_name=ch_title,
                                        chapter_num=ch_number, n_pages=n_pages,
                                        req_url=req_url)
@@ -336,7 +343,7 @@ class MongoPipelineNew(object):
                 page_cur = self.query_manga_chapter_page(title=title,
                                                          chapter=ch_number,
                                                          page=page)
-                if not page_cur:
+                if page_cur is None:
                     self.add_chapter_page(title=title, chapter_num=ch_number,
                                           page=page, page_url=image_urls,
                                           images=images)

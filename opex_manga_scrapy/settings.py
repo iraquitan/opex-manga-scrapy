@@ -77,7 +77,7 @@ ITEM_PIPELINES = {
     # 'opex_manga_scrapy.pipelines.OpexMangaScrapyPipeline': 300,
     'scrapy.pipelines.images.ImagesPipeline': 1,
     'opex_manga_scrapy.pipelines.JsonWriterPipeline': 300,
-    'opex_manga_scrapy.pipelines.MongoPipeline': 400,
+    'opex_manga_scrapy.pipelines.MongoPipelineNew': 400,
 }
 IMAGES_STORE = os.path.expanduser('~/scrapy-mangas/')
 if not os.path.exists(IMAGES_STORE):
