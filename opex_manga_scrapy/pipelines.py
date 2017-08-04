@@ -217,21 +217,24 @@ class MongoPipelineNew(object):
             manga = res
         return manga
 
-    def query_manga_chapter(self, title, chapter):
+    def query_manga_chapter(self, title, chapter_num):
         coll_mg = self.db[self.collection_mangas]
-        coll_ch = self.db[self.collection_mangas]
+        coll_ch = self.db[self.collection_chapters]
         manga = coll_mg.find_one({"title": title,
-                                   "chapters": {"num": chapter}})
+                                  "chapters": {
+                                      '$elemMatch': {"num": chapter_num}
+                                  }})
         chapter = None
         if manga is not None:
-            chapter_id = [c.id for c in manga.chapters if c.num == chapter]
-            chapter = coll_ch.find({'_id': chapter_id[0]})
+            chapter_id = [c['id'] for c in manga['chapters']
+                          if c['num'] == chapter_num]
+            chapter = coll_ch.find_one({'_id': chapter_id[0]})
 
         return chapter
 
-    def query_manga_chapter_page(self, title, chapter, page):
+    def query_manga_chapter_page(self, title, chapter_num, page):
         coll_ch = self.db[self.collection_chapters]
-        chapter = self.query_manga_chapter(title, chapter)
+        chapter = self.query_manga_chapter(title, chapter_num)
 
         chapter_page = None
         if chapter is not None:
@@ -255,6 +258,10 @@ class MongoPipelineNew(object):
         coll_ch = self.db[self.collection_chapters]
         coll_mangas = self.db[self.collection_mangas]
 
+        if self.query_manga_chapter(title, chapter_num):
+            # Chapter already exists
+            return False
+
         chapter_dict = {
             'name': chapter_name,
             'num': chapter_num,
@@ -270,6 +277,7 @@ class MongoPipelineNew(object):
 
         res_ch = coll_ch.insert_one(chapter_dict)
         if res_ch.inserted_id:
+
             res_mg = coll_mangas.find_one_and_update(
                 {'title': title},
                 {
@@ -330,8 +338,7 @@ class MongoPipelineNew(object):
                                   page=page, page_url=image_urls,
                                   images=images)
         else:
-            chapter_cur = self.query_manga_chapter(title=title,
-                                                   chapter=ch_number)
+            chapter_cur = self.query_manga_chapter(title, ch_number)
             if chapter_cur is None:
                 self.add_manga_chapter(title=title, chapter_name=ch_title,
                                        chapter_num=ch_number, n_pages=n_pages,
@@ -340,9 +347,8 @@ class MongoPipelineNew(object):
                                       page=page, page_url=image_urls,
                                       images=images)
             else:
-                page_cur = self.query_manga_chapter_page(title=title,
-                                                         chapter=ch_number,
-                                                         page=page)
+                page_cur = self.query_manga_chapter_page(title, ch_number,
+                                                         page)
                 if page_cur is None:
                     self.add_chapter_page(title=title, chapter_num=ch_number,
                                           page=page, page_url=image_urls,
