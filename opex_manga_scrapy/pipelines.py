@@ -298,11 +298,12 @@ class MongoPipelineNew(object):
             'image_urls': page_url,
             'images': images
         }
+        chapter = self.query_manga_chapter(title, chapter_num)
         chapter_page = self.query_manga_chapter_page(title, chapter_num, page)
         res = None
-        if chapter_page is not None:
+        if chapter_page is None:
             res = coll_ch.find_one_and_update(
-                {'_id': chapter_page['_id']},
+                {'_id': chapter['_id']},
                 {"$push": {"pages": page_dict},
                  "$set": {"last_modified": datetime.datetime.utcnow()}})
         return res
